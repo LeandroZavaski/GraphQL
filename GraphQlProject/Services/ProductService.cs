@@ -1,4 +1,5 @@
-﻿using GraphQlProject.Interfaces;
+﻿using GraphQlProject.Data;
+using GraphQlProject.Interfaces;
 using GraphQlProject.Models;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,51 +8,45 @@ namespace GraphQlProject.Services
 {
     public class ProductService : IProduct
     {
-        public ProductService()
+        private readonly GraphQLDbContext _dbContext;
+        public ProductService(GraphQLDbContext dbContext)
         {
-
+            _dbContext = dbContext;
         }
-
-        private static readonly List<Product> products = new List<Product>
-        {
-            new Product
-            {
-                Id = 0,
-                Name = "Coffe",
-                Price = 10
-            },
-            new Product
-            {
-                Id = 1,
-                Name = "Tea",
-                Price = 15
-            }
-        };
 
         public Product AddProduct(Product product)
         {
-            products.Add(product);
+            _dbContext.Products.Add(product);
+            _dbContext.SaveChanges();
             return product;
         }
 
         public void DeleteProduct(int id)
         {
-            products.RemoveAt(id);
+            var productObject = _dbContext.Products.Find(id);
+
+            _dbContext.Products.Remove(productObject);
+            _dbContext.SaveChanges();
         }
 
         public IEnumerable<Product> GetAllProducts()
         {
-            return products;
+            return _dbContext.Products.ToList();
         }
 
         public Product GetProductById(int id)
         {
-            return products.FirstOrDefault(s => s.Id == id);
+            return _dbContext.Products.FirstOrDefault(s => s.Id == id);
         }
 
         public Product UpdateProduct(int id, Product product)
         {
-            products[id-1] = product;
+            var productObject = _dbContext.Products.Find(id);
+            productObject.Name = product.Name;
+            productObject.Price = product.Price;
+
+            _dbContext.SaveChanges();
+
             return product;
         }
     }
